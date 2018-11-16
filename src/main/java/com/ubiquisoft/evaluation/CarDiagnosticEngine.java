@@ -9,6 +9,9 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class CarDiagnosticEngine {
 
@@ -39,7 +42,43 @@ public class CarDiagnosticEngine {
 		 * console output is as least as informative as the provided methods.
 		 */
 
+		// Check car for empty fields
+        boolean hasNullOrEmptyField = false;
+        if (car.getMake() == null || car.getMake().isEmpty()) {
+            System.out.println("Empty field detected: Car Make");
+            hasNullOrEmptyField = true;
+        } if (car.getModel() == null || car.getModel().isEmpty()) {
+            System.out.println("Empty field detected: Car Model");
+            hasNullOrEmptyField = true;
+        } if (car.getYear() == null || car.getYear().isEmpty()) {
+            System.out.println("Empty field detected: Car Year");
+            hasNullOrEmptyField = true;
+        }
+        if (hasNullOrEmptyField) return;
 
+        // Check for missing parts
+        Map<PartType, Integer> missingParts = car.getMissingPartsMap();
+        if (!missingParts.isEmpty()) {
+            Iterator i = missingParts.entrySet().iterator();
+            while (i.hasNext()) {
+                Map.Entry currentPart = (Map.Entry)i.next();
+                printMissingPart((PartType)currentPart.getKey(), (Integer)currentPart.getValue());
+            }
+            return;
+        }
+
+        // Check for working condition parts
+        boolean hasDamagedParts = false;
+        for (Part part : car.getParts()) {
+            if (!part.isInWorkingCondition()) {
+                printDamagedPart(part.getType(), part.getCondition());
+                hasDamagedParts = true;
+            }
+        }
+        if (hasDamagedParts) return;
+
+        // Success
+        System.out.println("Car diagnostic complete! All required car parts are present and in working condition.");
 	}
 
 	private void printMissingPart(PartType partType, Integer count) {
